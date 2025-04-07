@@ -88,17 +88,35 @@ Content: {input_text}
 """)
 title_chain = LLMChain(llm=llm, prompt=title_prompt, output_key="title")
 
+pixabay_prompt = PromptTemplate.from_template("""
+Generate a query term to find a relevant images on Pixabay.
+Make it catchy and interesting for ADHD readers.
+                                            
+Rules:
+- Follow the Global Rules strictly.
+- DO NOT explain your process.
+- DO NOT output any meta-comments or notes.
+- ONLY output the requested content directly.
+
+Content: {input_text}
+""")
+pixabay_chain = LLMChain(llm=llm, prompt=pixabay_prompt, output_key="query")
+
 outro_prompt = PromptTemplate.from_template("""
 Generate a curiosity-driven outro encouraging the reader to explore more.
 
 
 Content: {engaged_text}
 """)
+
+
+
 outro_chain = LLMChain(llm=llm, prompt=outro_prompt, output_key="adhd_outro")
 
 adhd_transform_chain = (
     hook_chain
     | title_chain
+    | pixabay_chain
     | simplify_chain
     | chunk_chain
     | highlight_chain
@@ -114,7 +132,8 @@ def process_content(input_content):
             "title": result['title'],
             "hook": result['adhd_hook'],
             "content": result['engaged_text'],
-            "outro": result['adhd_outro']
+            "outro": result['adhd_outro'],
+            "query": result['query'],
         }
     except Exception as e:
         raise Exception(f"Error processing content: {str(e)}")

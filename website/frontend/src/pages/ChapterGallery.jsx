@@ -1,17 +1,26 @@
 import { useState, useMemo } from 'react';
-import { Button, Group, Container, Paper, Text, Progress } from '@mantine/core';
+import { Button, Group, Container, Paper, Text, Progress, Image } from '@mantine/core';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 
-// Utility function to split content by headings
-function splitByHeadings(content) {
+// Utility function to split content by headings and interleave images
+function splitByHeadings(content, images) {
   // Split the content by '## ' but keep the delimiter
-  const parts = content.split(/(?=##)/);
-  // Filter out empty strings and trim each part
-  return parts.filter(part => part.trim());
+  const parts = content.split(/(?=##)/).filter(part => part.trim());
+  
+  // Interleave images with content
+  const interleaved = [];
+  parts.forEach((part, index) => {
+    interleaved.push(part);
+    if (images && images[index]) { // Ensure images is defined and has elements
+      interleaved.push({ type: 'image', src: images[index] });
+    }
+  });
+
+  return interleaved;
 }
 
-export default function ChapterGallery({ article }) {
+export default function ChapterGallery({ article, images }) {
   if (!article) return (
     <Container className="min-h-screen flex items-center justify-center">
       <Text color="red">Article not found</Text>
@@ -19,8 +28,8 @@ export default function ChapterGallery({ article }) {
   );
 
   const contentPages = useMemo(() => {
-    return article?.content ? splitByHeadings(article.content) : [];
-  }, [article?.content]);
+    return article?.content ? splitByHeadings(article.content, images) : [];
+  }, [article?.content, images]);
 
   const [currentIndex, setCurrentIndex] = useState(-1);
 
@@ -37,7 +46,13 @@ export default function ChapterGallery({ article }) {
   const getContent = () => {
     if (currentIndex === -1) return article.hook;
     if (currentIndex === totalSections - 2) return article.outro;
-    return contentPages[currentIndex];
+
+    const page = contentPages[currentIndex];
+    if (typeof page === 'string') {
+      return <ReactMarkdown>{page}</ReactMarkdown>;
+    } else if (page.type === 'image') {
+      return <Image src={page.src} alt={`${article.title} - Image`} height={200} fit="contain" className="rounded shadow" />;
+    }
   };
 
   return (
@@ -72,7 +87,7 @@ export default function ChapterGallery({ article }) {
           exit={{ opacity: 0, x: -50 }}
         >
           <Paper shadow="md" p="lg" radius="md" withBorder>
-            <ReactMarkdown>{getContent()}</ReactMarkdown>
+            {getContent()}
           </Paper>
         </motion.div>
       </AnimatePresence>
