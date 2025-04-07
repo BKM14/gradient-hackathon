@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { ActionIcon, Paper } from '@mantine/core';
-import { IconMicrophone } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
+import mic from "../assets/microphone.svg";
 
 const MicInput = () => {
     const [isRecording, setIsRecording] = useState(false);
@@ -73,24 +73,22 @@ const MicInput = () => {
                     variant="filled"
                     size="xl"
                     radius="xl"
+                    p={4}
                     color={isRecording ? 'red' : 'blue'}
                     className="flex shadow-lg transition-colors duration-300"
                     onClick={isRecording ? stopRecording : startRecording}
                 >
-                    <IconMicrophone 
-                        size={28}
-                        color="white"
-                    />
+                    <img src={mic} alt="microphone svg" />
                 </ActionIcon>
             </motion.div>
-
+{/* 
             {audioURL && (
                 <audio 
                     controls 
                     src={audioURL}
                     className="w-64 mt-4"
                 ></audio>
-            )}
+            )} */}
         </Paper>
     );
 };

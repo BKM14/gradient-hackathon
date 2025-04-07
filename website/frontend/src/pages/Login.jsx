@@ -25,29 +25,30 @@ export function UserAuth({ type }) {
 
   async function handleSubmit(values) {
     setLoading(true);
-    // const url = import.meta.env.VITE_BASE_URL + (type === 'signup' ? 'user/create' : 'user/signin');
-
-    // const payload = type === 'signup' ? values : {
-    //   email: values.email,
-    //   password: values.password
-    // };
+    const url = import.meta.env.VITE_API_URL + (type === 'signup' ? '/auth/signup' : '/auth/signin');
+    const payload = type === 'signup' ? values : {
+      email: values.email,
+      password: values.password
+    };
 
     try {
-    //   const res = await fetch(url, {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify(payload)
-    //   });
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-    //   const data = await res.json();
-    //   alert(data.message);
+      const data = await res.json();
 
-    //   if (data.message.includes('successful')) {
-    //     // navigate('/user');
-    //   }
-    navigate("/onboard")
+      if (!res.ok) {
+        throw new Error(data.error || 'Something went wrong');
+      }
+
+      // Store the token
+      localStorage.setItem('token', data.token);
+      navigate("/onboard"); // Navigate to disability form for onboarding
     } catch (e) {
-      alert('An error occurred: ' + e);
+      alert(e.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -67,7 +68,7 @@ export function UserAuth({ type }) {
             </Text>
           </Title>
 
-          <form onSubmit={form.onSubmit(handleSubmit)} className="space-y-4">
+          <div className="space-y-4">
             <TextInput 
               label="Email" 
               placeholder="johndoe@gmail.com" 
@@ -97,7 +98,7 @@ export function UserAuth({ type }) {
             )}
 
             <Button 
-              type="submit" 
+              onClick={() => handleSubmit(form.values)}
               fullWidth 
               loading={loading} 
               size="md"
@@ -105,7 +106,7 @@ export function UserAuth({ type }) {
             >
               {type === 'signup' ? 'Create Account' : 'Sign In'}
             </Button>
-          </form>
+          </div>
 
           <Group position="center" mt="xl">
             <Text size="sm">

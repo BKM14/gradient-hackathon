@@ -53,7 +53,6 @@ app.post('/auth/signup', async (req, res) => {
         const { name, email, password } = req.body;
         const user = new User({ name, email, password });
         await user.save();
-        console.log();
         const token = jwt.sign({ userId: user._id }, JWT_SECRET);
         res.status(201).json({ token });
     } catch (error) {
@@ -81,6 +80,36 @@ app.post('/auth/signin', async (req, res) => {
 app.get('/profile', auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.userId).select('-password');
+        res.json(user);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Update user disabilities
+app.post('/user/disabilities', auth, async (req, res) => {
+    try {
+        const { disabilities, otherDisability } = req.body;
+        
+        // Validate disabilities array
+        if (!Array.isArray(disabilities) || disabilities.length === 0) {
+            return res.status(400).json({ error: 'At least one disability must be selected' });
+        }
+
+        // Validate otherDisability if 'other' is selected
+        if (disabilities.includes('other') && !otherDisability) {
+            return res.status(400).json({ error: 'Please specify the other disability' });
+        }
+
+        const user = await User.findByIdAndUpdate(
+            req.user.userId,
+            { 
+                disabilities,
+                otherDisability: disabilities.includes('other') ? otherDisability : ''
+            },
+            { new: true }
+        ).select('-password');
+
         res.json(user);
     } catch (error) {
         res.status(400).json({ error: error.message });

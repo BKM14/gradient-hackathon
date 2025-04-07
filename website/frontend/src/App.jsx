@@ -1,7 +1,6 @@
 // import { useState } from 'react'
 import './App.css'
 import '@mantine/core/styles.css';
-import { Button, MantineProvider } from "@mantine/core"
 import { UserAuth } from './pages/Login.jsx'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import DisabilityForm from './pages/DisabilityForm.jsx';

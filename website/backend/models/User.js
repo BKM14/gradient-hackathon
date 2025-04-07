@@ -13,6 +13,14 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    disabilities: [{
+        type: String,
+        enum: ['visual', 'hearing', 'mobility', 'learning', 'neurodivergent', 'speech', 'cognitive', 'other']
+    }],
+    otherDisability: {
+        type: String,
+        default: ''
     }
 }, { timestamps: true });
 

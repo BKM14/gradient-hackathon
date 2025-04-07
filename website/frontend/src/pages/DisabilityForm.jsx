@@ -38,19 +38,28 @@ export default function DisabilityForm() {
     setIsLoading(true)
 
     try {
-      // Prepare form data
       const formData = {
         disabilities: selectedOptions,
         otherDisability: selectedOptions.includes("other") ? otherText : "",
       }
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/user/disabilities`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(formData)
+      });
 
-      console.log("Form submitted:", formData)
-      setSuccess(true)
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit form');
+      }
+
+      setSuccess(true);
     } catch (err) {
-      setError("An error occurred while submitting the form. Please try again.")
+      setError(err.message || "An error occurred while submitting the form. Please try again.")
       console.error(err)
     } finally {
       setIsLoading(false)
