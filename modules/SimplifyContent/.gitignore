@@ -2,3 +2,4 @@
 *.md
 index.html
 script.js
+.env
