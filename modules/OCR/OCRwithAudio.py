@@ -4,8 +4,10 @@ import pyttsx3
 import requests
 import difflib
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
-pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/bin/tesseract'
+pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
 
 def extract_frames(video_path, interval_sec=3):
     cap = cv2.VideoCapture(video_path)
@@ -96,7 +98,6 @@ def run_pipeline(video_path, api_key):
     print("[*] Converting to speech...")
     text_to_speech(cleaned_text)
 
-if _name_ == "_main_":
-    video_file = "khan2.mp4"
-    openrouter_api_key = "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" 
-    run_pipeline(video_file, openrouter_api_key)
+if __name__ == "__main__":
+    video_file = "khan2.mp4" 
+    run_pipeline(video_file, os.getenv("OPENROUTER_API_KEY"))

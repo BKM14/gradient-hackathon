@@ -4,8 +4,11 @@ import pyttsx3
 import requests
 import difflib
 import os
+from dotenv import load_dotenv
+load_dotenv()
+import re
 
-pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/bin/tesseract'
+pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
 
 def extract_frames(video_path, interval_sec=3):
     cap = cv2.VideoCapture(video_path)
@@ -44,7 +47,7 @@ def remove_redundant_lines(text):
 def clean_text_with_openrouter(text, api_key):
     if len(text) < 10:
         return "No meaningful content detected."
-
+    
     deduped_text = remove_redundant_lines(text)
 
     prompt = (
@@ -74,27 +77,38 @@ def clean_text_with_openrouter(text, api_key):
         return "Error processing text with OpenRouter."
 
 def text_to_speech(text):
-    engine = pyttsx3.init()
+    engine = pyttsx3.init(driverName='espeak')
     engine.setProperty('rate', 140)
     engine.setProperty('volume', 1.0)
     print("[*] Speaking the summary...")
-    engine.say(text)
-    engine.runAndWait()
 
-def run_pipeline(video_path, api_key):
+    sentences = re.split(r'[.?!]\s+', text)
+    
+    for sentence in sentences:
+        sentence = sentence.strip()
+        if sentence:
+            engine.say(sentence)
+            engine.runAndWait()
+
+def run_pipeline(api_key, video_path):
     print("[*] Extracting frames...")
     frames = extract_frames(video_path)
+    print(video_path)
 
     print("[*] Running OCR on frames...")
     text = extract_text_from_frames(frames)
-    print("Extracted Text:\n", text)
+    # print("Extracted Text:\n", text)
 
     print("[*] Cleaning text with OpenRouter...")
     cleaned_text = clean_text_with_openrouter(text, api_key)
-    print("Final Cleaned Text:\n", cleaned_text)
+    # print("Final Cleaned Text:\n", cleaned_text)
 
     print("[*] Converting to speech...")
     text_to_speech(cleaned_text)
 
-def video(video_file, openrouter_api_key): 
-    run_pipeline(video_file, openrouter_api_key)
+    with open("temp.txt", "w") as f:
+        f.write(text)
+    print("[*] Summary saved to temp.txt")
+
+def video(openrouter_api_key, video_file): 
+    run_pipeline(openrouter_api_key, video_file)

@@ -7,6 +7,8 @@ const jwt = require('jsonwebtoken');
 const User = require('./models/User');
 const { auth } = require('./middleware/auth');
 const Article = require('./models/Article');
+const multer = require('multer');
+const path = require('path');
 
 const app = express();
 app.use(express.json());
@@ -16,10 +18,27 @@ app.use(express.raw({ type: 'audio/wav', limit: '100mb' }));
 const PORT = 3000;
 const JWT_SECRET = process.env.JWT_SECRET
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/');  // your upload folder
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname);  // Extract .mp4, .mov etc.
+        const filename = Date.now() + ext;  // Unique filename with correct extension
+        cb(null, filename);
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 100 * 1024 * 1024 }, 
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('video/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only video files are allowed'));
+        }
+    }
 });
 
 app.get('/', (req, res) => {
@@ -176,6 +195,31 @@ app.get('/user/:id', auth, async (req, res) => {
         res.json(user);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch user details' });
+    }
+});
+
+// Video upload and processing endpoint
+app.post('/video_ocr', upload.single('video'), async (req, res) => {
+    try {
+        const videoPath = req.file.path;
+        const absolutePath = path.resolve(videoPath);
+
+        // Simulate processing the video (e.g., sending it to an OCR service)
+        console.log(`Processing video at: ${videoPath}`);
+
+        await fetch("http://localhost:5001/video_transcription", {
+            method: "POST",
+            body: JSON.stringify({ absolutePath }),
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        // Example response after processing
+        const ocrResult = { message: 'Video processed successfully', path: absolutePath };
+
+        res.status(200).json(ocrResult);
+    } catch (error) {
+        console.error('Error processing video:', error);
+        res.status(500).json({ error: 'Failed to process video' });
     }
 });
 
