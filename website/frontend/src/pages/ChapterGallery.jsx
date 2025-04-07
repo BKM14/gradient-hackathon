@@ -6,15 +6,21 @@ import ReactMarkdown from 'react-markdown';
 // Utility function to split content by headings
 function splitByHeadings(content) {
   // Split the content by '## ' but keep the delimiter
-  const parts = content.split(/(?=## )/);
+  const parts = content.split(/(?=##)/);
   // Filter out empty strings and trim each part
   return parts.filter(part => part.trim());
 }
 
-export default function ChapterGallery({ data }) {
+export default function ChapterGallery({ article }) {
+  if (!article) return (
+    <Container className="min-h-screen flex items-center justify-center">
+      <Text color="red">Article not found</Text>
+    </Container>
+  );
+
   const contentPages = useMemo(() => {
-    return splitByHeadings(data.content);
-  }, [data.content]);
+    return article?.content ? splitByHeadings(article.content) : [];
+  }, [article?.content]);
 
   const [currentIndex, setCurrentIndex] = useState(-1);
 
@@ -29,18 +35,18 @@ export default function ChapterGallery({ data }) {
   };
 
   const getContent = () => {
-    if (currentIndex === -1) return data.hook;
-    if (currentIndex === totalSections - 2) return data.outro;
+    if (currentIndex === -1) return article.hook;
+    if (currentIndex === totalSections - 2) return article.outro;
     return contentPages[currentIndex];
   };
 
   return (
     <Container size="md" py="xl">
       <Text size="xl" fw={700} mb="lg" ta="center">
-        {data.title}
+        {article.title}
       </Text>
 
-      <Progress value={((currentIndex + 2) / totalSections) * 100} mb="md" />
+      <Progress value={((currentIndex + 1) / (totalSections - 1)) * 100} mb="md" />
 
       <Group justify="space-between" mt="xl" className='my-4'>
         <Button variant="light" onClick={goBack} disabled={currentIndex === -1}>

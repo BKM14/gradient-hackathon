@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import DisabilityForm from './pages/DisabilityForm.jsx';
 import ChapterGallery from './pages/ChapterGallery.jsx';
 import MicInput from './pages/MicInput.jsx';
+import Dashboard from './pages/Dashboard.jsx';
+import SubmitArticle from './pages/SubmitArticle.jsx';
 
 function App() {
   // const [count, setCount] = useState(0)
@@ -18,6 +20,8 @@ function App() {
         <Route element={<DisabilityForm/>} path='/onboard' />
         <Route element={<ChapterGallery data={data} />} path='/chapter'/>
         <Route element={<MicInput />} path='/mic'/>
+        <Route element={<Dashboard />} path='/dash'/>
+        <Route element={<SubmitArticle />} path='/submitArticle'/>
       </Routes>
     </BrowserRouter>
   )

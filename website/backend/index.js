@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
 const { auth } = require('./middleware/auth');
+const Article = require('./models/Article');
 
 const app = express();
 app.use(express.json());
@@ -113,6 +114,56 @@ app.post('/user/disabilities', auth, async (req, res) => {
         res.json(user);
     } catch (error) {
         res.status(400).json({ error: error.message });
+    }
+});
+
+app.get('/article/getArticles', auth, async (req, res) => {
+    try {
+        const articles = await Article.find()
+            .sort({ createdAt: -1 })
+            .limit(10);
+        res.json(articles);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch articles' });
+    }
+});
+
+app.get('/article/:id', auth, async (req, res) => {
+    try {
+        const article = await Article.findById(req.params.id);
+        if (!article) {
+            return res.status(404).json({ error: 'Article not found' });
+        }
+        res.json(article);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch article' });
+    }
+});
+
+app.post('/article/createArticle', async (req, res) => {
+    try {
+        const { text } = req.body;
+        if (!text || typeof text !== 'string') {
+            return res.status(400).json({ error: 'Raw text content is required' });
+        }
+
+        const flaskResponse = await fetch('http://localhost:5000/process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+
+        if (!flaskResponse.ok) {
+            throw new Error('Failed to process text');
+        }
+
+        const processedData = await flaskResponse.json();
+        const article = new Article(processedData);
+        await article.save();
+        
+        res.status(201).json(article);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 

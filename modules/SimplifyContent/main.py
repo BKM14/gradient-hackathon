@@ -73,6 +73,21 @@ Content: {input_text}
 """)
 hook_chain = LLMChain(llm=llm, prompt=hook_prompt, output_key="adhd_hook")
 
+title_prompt = PromptTemplate.from_template("""
+Generate a short, engaging title for this content.
+Make it catchy and interesting for ADHD readers.
+Keep it under 10 words.
+                                            
+Rules:
+- Follow the Global Rules strictly.
+- DO NOT explain your process.
+- DO NOT output any meta-comments or notes.
+- ONLY output the requested content directly.
+
+Content: {input_text}
+""")
+title_chain = LLMChain(llm=llm, prompt=title_prompt, output_key="title")
+
 outro_prompt = PromptTemplate.from_template("""
 Generate a curiosity-driven outro encouraging the reader to explore more.
 
@@ -83,6 +98,7 @@ outro_chain = LLMChain(llm=llm, prompt=outro_prompt, output_key="adhd_outro")
 
 adhd_transform_chain = (
     hook_chain
+    | title_chain
     | simplify_chain
     | chunk_chain
     | highlight_chain
@@ -90,51 +106,15 @@ adhd_transform_chain = (
     | outro_chain
 )
 
-input_content = """
-What is Artificial Intelligence?
-
-Artificial Intelligence (AI) is a broad field of computer science focused on building smart machines capable of performing tasks that typically require human intelligence. These tasks include 
-learning, reasoning, problem-solving, perception, and language understanding.
-Narrow AI vs General AI
-
-    Narrow AI: Specialized in one task (e.g., recommending products, recognizing faces).
-
-    General AI: A machine with the ability to understand, learn, and apply knowledge in multiple domains, similar to a human.
-
-Machine Learning
-
-Machine learning is a subset of AI where machines learn from data instead of being explicitly programmed.
-
-    Supervised Learning: Learning from labeled data.
-
-    Unsupervised Learning: Finding patterns in data without labels.
-
-    Reinforcement Learning: Learning by trial and error, using rewards and punishments.
-
-Real-life Examples
-
-    Virtual assistants (like Siri or Alexa)
-
-    Recommendation systems (Netflix, YouTube)
-
-    Self-driving cars
-
-    Translation services
-
-    Fraud detection systems
-"""
-
-result = adhd_transform_chain.invoke({"input_text": input_content})
-
-output_json = {
-    "title": "Understanding Artificial Intelligence",
-    "hook": result['adhd_hook'],
-    "content": result['engaged_text'],
-    "outro": result['adhd_outro']
-}
-
-output_file_path = "./output.json"
-with open(output_file_path, "w") as f:
-    json.dump(output_json, f, indent=2)
-
-print(f"JSON output written successfully to {output_file_path}")
+def process_content(input_content):
+    try:
+        result = adhd_transform_chain.invoke({"input_text": input_content})
+        
+        return {
+            "title": result['title'],
+            "hook": result['adhd_hook'],
+            "content": result['engaged_text'],
+            "outro": result['adhd_outro']
+        }
+    except Exception as e:
+        raise Exception(f"Error processing content: {str(e)}")

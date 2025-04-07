@@ -2,4 +2,5 @@
 *.md
 index.html
 script.js
+*.pyc
 .env
