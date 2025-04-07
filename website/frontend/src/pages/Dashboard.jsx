@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Text, Grid, Container, Title, Loader, Modal } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode'; // Import jwt-decode to decode the token
 import ChapterGallery from './ChapterGallery';
 
 const Dashboard = () => {
@@ -9,7 +9,35 @@ const Dashboard = () => {
     const [error, setError] = useState(null);
     const [selectedArticle, setSelectedArticle] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
-    const userName = "Balaji";
+    const [userName, setUserName] = useState('');
+
+    useEffect(() => {
+        const fetchUserName = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) throw new Error('No token found');
+
+                const decodedToken = jwtDecode(token);
+                const userId = decodedToken.userId;
+
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/user/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to fetch user data');
+
+                const userData = await response.json();
+                setUserName(userData.name);
+            } catch (err) {
+                console.error('Error fetching user name:', err.message);
+                setUserName('User');
+            }
+        };
+
+        fetchUserName();
+    }, []);
 
     useEffect(() => {
         const fetchArticles = async () => {
@@ -19,9 +47,9 @@ const Dashboard = () => {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-                
+
                 if (!response.ok) throw new Error('Failed to fetch articles');
-                
+
                 const data = await response.json();
                 setArticles(data);
             } catch (err) {
