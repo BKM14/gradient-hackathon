@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Text, Grid, Card, Modal, Title, Image, Loader } from '@mantine/core';
+import ChapterGallery from '../pages/ChapterGallery';
 
 const ADHDHelper = () => {
 

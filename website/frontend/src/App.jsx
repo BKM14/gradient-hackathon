@@ -9,6 +9,7 @@ import MicInput from './pages/MicInput.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import SubmitArticle from './pages/SubmitArticle.jsx';
 import FileUpload from './pages/FileUpload.jsx';
+import ScribeMicInput from './pages/ScribeMicInput.jsx';
 
 function App() {
   // const [count, setCount] = useState(0)
@@ -24,6 +25,7 @@ function App() {
         <Route element={<Dashboard />} path='/dash'/>
         <Route element={<SubmitArticle />} path='/submitArticle'/>
         <Route element={<FileUpload />} path='/fileUpload'/>
+        <Route element={<ScribeMicInput />} path='/scribe'/>
       </Routes>
     </BrowserRouter>
   )

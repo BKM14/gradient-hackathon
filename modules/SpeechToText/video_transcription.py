@@ -78,7 +78,7 @@ def clean_text_with_openrouter(text, api_key):
 
 def text_to_speech(text):
     engine = pyttsx3.init(driverName='espeak')
-    engine.setProperty('rate', 140)
+    engine.setProperty('rate', 130)
     engine.setProperty('volume', 1.0)
     print("[*] Speaking the summary...")
 

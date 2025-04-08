@@ -18,6 +18,11 @@ app.use(express.raw({ type: 'audio/wav', limit: '100mb' }));
 const PORT = 3000;
 const JWT_SECRET = process.env.JWT_SECRET
 
+mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/');  // your upload folder
@@ -220,6 +225,54 @@ app.post('/video_ocr', upload.single('video'), async (req, res) => {
     } catch (error) {
         console.error('Error processing video:', error);
         res.status(500).json({ error: 'Failed to process video' });
+    }
+});
+
+const uploadImage = multer({
+    storage: multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, 'uploads/'); // Save images in the 'uploads/' directory
+        },
+        filename: function (req, file, cb) {
+            const ext = path.extname(file.originalname); // Extract file extension
+            const filename = Date.now() + ext; // Generate a unique filename
+            cb(null, filename);
+        }
+    }),
+    limits: { fileSize: 10 * 1024 * 1024 }, // Limit file size to 10MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed'));
+        }
+    }
+});
+
+app.post('/process_image', uploadImage.single('image'), async (req, res) => {
+    try {
+        const photoPath = req.file.path; // Path to the saved image
+        const absolutePath = path.resolve(photoPath); // Get absolute path
+
+        console.log(`Processing image at: ${absolutePath}`);
+
+        // Send the absolute path directly to the external service
+        const flaskResponse = await fetch("http://localhost:5002/process_image", {
+            method: "POST",
+            body: JSON.stringify({ path: absolutePath }),
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!flaskResponse.ok) {
+            throw new Error('Failed to process image');
+        }
+
+        const result = await flaskResponse.json();
+
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Error processing image:', error);
+        res.status(500).json({ error: 'Failed to process image' });
     }
 });
 
